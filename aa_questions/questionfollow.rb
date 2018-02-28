@@ -1,4 +1,5 @@
 require_relative 'questions_database.rb'
+require_relative 'user'
 
 class QuestionFollow
   attr_accessor :user_id, :question_id
@@ -19,10 +20,24 @@ class QuestionFollow
         id = ?
     SQL
 
-    # p question
     return nil if follow.empty?
 
     QuestionFollow.new(follow.first)
+  end
+
+  def self.followers_for_question_id(question_id)
+    users = QuestionsDatabase.instance.execute(<<-SQL, question_id)
+      SELECT
+        users.*
+      FROM
+        users
+      JOIN
+        question_follows ON users.id = question_follows.user_id
+      WHERE
+        question_id = ?
+    SQL
+
+    users.map { |user| User.new(user) }
   end
 
   def initialize(options)
